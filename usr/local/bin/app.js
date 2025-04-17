@@ -13,8 +13,8 @@ const PORT = process.env.PORT;
 // const SECRET = process.env.SECRET;
 const DEVICEID = process.env.DEVICEID;
 
-const SWITCHBOT_SERVICE_UUID = 'f000aa00-0451-4000-b000-000000000000';
-const SWITCHBOT_CHARACTERISTIC_UUID = 'f000aa01-0451-4000-b000-000000000000';
+const SWITCHBOT_SERVICE_UUID = '0000fd3d00001000800000805f9b34fb';
+const SWITCHBOT_CHARACTERISTIC_UUID = 'CBA20003-224D-11E6-9FB8-0002A5D5C51B';
 
 // プリフィックスセットアップ
 // const switchbot = new SwitchBot(TOKEN);
@@ -48,17 +48,19 @@ async function connectToDevice(deviceId) {
   noble.on('stateChange', async (state) => {
       if (state === 'poweredOn') {
           console.log('Bluetooth is powered on, starting scan...');
-          noble.startScanning([SWITCHBOT_SERVICE_UUID], false);
+          noble.startScanning();
+          // noble.startScanning([SWITCHBOT_SERVICE_UUID], false);
       } else {
           noble.stopScanning();
       }
   });
 
+  const set = new Set();
   noble.on('discover', async (peripheral) => {
-      if (peripheral.id === deviceId) {
-          console.log(`Found device: ${peripheral.id}, connecting...`);
+    if(peripheral.address.toUpperCase() == DEVICEID.toUpperCase()){
           noble.stopScanning();
-
+          console.log(`Found device: ${peripheral.id}, connecting...`);
+          console.log('stop scanning');
           peripheral.connect((error) => {
               if (error) {
                   console.error('Connection error:', error);
