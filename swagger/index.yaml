@@ -1,0 +1,105 @@
+openapi: '3.1.0'
+info:
+  title: SwitchBot API with Nodejs for C0de
+  version: '1.0'
+  description: This api is ONLY for C0de.
+servers:
+  - url: http://hostname:3010/api/v1
+    description: plz change hostname for busitu pc's host name
+tags:
+  - name: Lock
+    description: Lock door
+  - name: Unlock
+    description: Unlock door
+paths:
+  /lock:
+    post:
+      summary: "lock door"
+      description: "look door"
+      tags: 
+        - Lock
+      requestBody:
+        description: "write auth info"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/auth"
+      responses:
+        '200':
+          description: "when success lock"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/success-lock"
+        '401':
+          $ref: "#/components/responses/401"
+  /unlock:
+    post:
+      summary: "unlock door"
+      description: "unlook door"
+      tags: 
+        - Lock
+      requestBody:
+        description: "write auth info"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/auth"
+      responses:
+        '200':
+          description: "when success lock"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/success-unlock"
+        '401':
+          $ref: "#/components/responses/401"
+
+components:
+  schemas:
+    auth:
+      type: object
+      properties:
+        serial:
+          type: string
+          description: "serial number or some fixed id"
+          format: uuid
+    success-lock:
+      type: object
+      properties:
+        serial: 
+          type: string
+          description: "who locked"
+          format: uuid
+        isLocked:
+          type: boolean
+          default: true
+    success-unlock:
+      type: object
+      properties:
+        serial:
+          type: string
+          description: "who unlocked"
+          format: uuid
+        isLocked:
+          type: boolean
+          default: false
+  responses:
+    '401':
+      description: "Authentication failed"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              serial:
+                type: string
+                description: "reqested id"
+                format: uuid
+              isLocked:
+                type: boolean
+              message:
+                type: string
+                default: "Authentication failed. Please try again or check your id"
