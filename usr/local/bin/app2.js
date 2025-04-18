@@ -36,65 +36,74 @@ function logWrite(action, sid, msg) {
 
 }
 
-function checkIsLocked() {
-  return true
+async function checkIsLocked() {
+  return false
 }
 
-const setLock = (lock) => {
+const setLock = async (lock) => {
   const switchbot = new SwitchBotBLE();
-  return switchbot
-    .discover({ id: DEVICEID.toUpperCase(), duration: 1000 })
-    .then((device_list) => {
-      if (device_list.length <= 0) {
-        return Promise.resolve("no device detected.");
-      }
-      const lockDevice = device_list[0];
-      lockDevice.setKey(KEY, ENC);
-      return lock ? lockDevice.lock() : lockDevice.unlock();
-    })
+  const device = await switchbot.discover({ id: DEVICEID.replace(/[-:]/g, ''), duration: 1000 })
+
+  if (device.length <= 0) {
+    throw new Error('No device detected.');
+  }
+
+  const lockDevice = device[0]
+  lockDevice.setKey(KEY,ENC);
+  return lock ? lockDevice.lock() : lockDevice.unlock()
 }
 
 // API本体
-app.post('/api/lock', (req, res) => {
+app.post('/api/lock', async (req, res) => {
   const data = req.body;
   const serial = data.serial;
-  const isLocked = checkIsLocked();
+  const isLocked = await checkIsLocked();
   console.log('run lock command by',serial,'to',DEVICEID.replace(/[-:]/g, '').toLowerCase());
   console.log('now lock is',isLocked);
+  if (isLocked) {
+    console.log('already locked')
+    res.json(res401(serial, isLocked))
+  }else{
   if (auth(serial)) {
-    setLock(true).then((result) => {
-      console.log(result);
+    try {
+      await setLock(true);
       res.json({
         "serial": serial,
         "isLocked": true
       })
-    }).catch((error) => {
+    } catch (error) {
       console.error(error);
-      res.json(res401(serial, isLocked))
-    })
+      res.json(res401())
+    }
   } else {
     res.json(res401(serial, isLocked))
-  }
+  }}
 })
 
-app.post('/api/unlock', (req, res) => {
+app.post('/api/unlock', async (req, res) => {
   const data = req.body;
   const serial = data.serial;
-  const isLocked = checkIsLocked();
+  const isLocked = await checkIsLocked();
+  console.log('run unlock command by',serial,'to',DEVICEID.replace(/[-:]/g, '').toLowerCase());
+  console.log('now lock is',isLocked);
+  if (!isLocked) {
+    console.log('already unlocked')
+    res.json(res401(serial, isLocked))
+  }else{
   if (auth(serial)) {
-    setLock(false).then((result) => {
-      console.log(result);
+    try {
+      await setLock(false);
       res.json({
         "serial": serial,
         "isLocked": true
       })
-    }).catch((error) => {
+    } catch (error) {
       console.error(error);
-      res.json(res401(serial, isLocked))
-    })
+      res.json(res401())
+    }
   } else {
     res.json(res401(serial, isLocked))
-  }
+  }}
 })
 
 app.listen(PORT, () => {
