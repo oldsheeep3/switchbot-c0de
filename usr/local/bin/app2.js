@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 import express from 'express';
-import SwitchBot from 'switchbot-api';
+import { SwitchBotBLE } from "node-switchbot";
 import noble from '@abandonware/noble';
 
 // .envファイルの読み込み
@@ -41,9 +41,9 @@ function checkIsLocked() {
 }
 
 const setLock = (lock) => {
-  const switchbot = new SwitchBot(TOKEN,SECRET);
+  const switchbot = new SwitchBotBLE();
   return switchbot
-    .discover({ id: DEVICEID, duration: 10000, quick: true })
+    .discover({ id: DEVICEID.toUpperCase(), duration: 1000 })
     .then((device_list) => {
       if (device_list.length <= 0) {
         return Promise.resolve("no device detected.");
@@ -59,6 +59,8 @@ app.post('/api/lock', (req, res) => {
   const data = req.body;
   const serial = data.serial;
   const isLocked = checkIsLocked();
+  console.log('run lock command by',serial,'to',DEVICEID.replace(/[-:]/g, '').toLowerCase());
+  console.log('now lock is',isLocked);
   if (auth(serial)) {
     setLock(true).then((result) => {
       console.log(result);
