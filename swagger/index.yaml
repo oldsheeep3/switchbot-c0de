@@ -8,9 +8,7 @@ servers:
     description: plz change hostname for busitu pc's host name
 tags:
   - name: Lock
-    description: Lock door
-  - name: Unlock
-    description: Unlock door
+    description: Lock or Unlock door
 paths:
   /lock:
     post:
