@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 import express from 'express';
 import { SwitchBotBLE } from "node-switchbot";
-import noble from '@abandonware/noble';
+import noble from '@stoprocent/noble';
 
 // .envファイルの読み込み
 config();
@@ -46,8 +46,8 @@ const setLock = async (lock) => {
   try {
     await switchbot.startScan();
     const device = await switchbot.discover({ id: DEVICEID.replace(/[-:]/g, ''), duration: 10000 })
-    console.log('find device',device)
-    await switchbot.stopScan()
+    console.log('find device')
+    // await switchbot.stopScan()
     console.log('divice discovery complete.');
     console.log(device.length)
     if (device.length <= 0) {
@@ -55,7 +55,9 @@ const setLock = async (lock) => {
     }
 
     const lockDevice = device[0]
-    lockDevice.setKey(KEY,ENC);
+    console.log('setting key');
+    // lockDevice.setKey(KEY,ENC);
+    await lockDevice.connect();
     console.log('change lock',lockDevice);
     return lock ? await lockDevice.lock() : await lockDevice.unlock()
   } catch(error) {
