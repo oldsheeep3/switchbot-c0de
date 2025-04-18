@@ -10,6 +10,8 @@ const app = express()
 // .env読み込み
 const PORT = process.env.PORT;
 const DEVICEID = process.env.DEVICEID;
+const TOKEN = process.env.TOKEN;
+const SECRET = process.env.SECRET;
 const KEY = process.env.KEY;
 const ENC = process.env.ENC;
 // https://github.com/shizuka-na-kazushi/switchbot-get-encryption-key
@@ -39,19 +41,15 @@ function checkIsLocked() {
 }
 
 const setLock = (lock) => {
-  const switchbot = new SwitchBot();
+  const switchbot = new SwitchBot(TOKEN,SECRET);
   return switchbot
-    .discover({
-      id: DEVICEID,
-      duration: 10000,
-      quick: true
-    })
+    .discover({ id: DEVICEID, duration: 10000, quick: true })
     .then((device_list) => {
       if (device_list.length <= 0) {
         return Promise.resolve("no device detected.");
       }
       const lockDevice = device_list[0];
-      lockDevice.setKey(KEY,ENC);
+      lockDevice.setKey(KEY, ENC);
       return lock ? lockDevice.lock() : lockDevice.unlock();
     })
 }
