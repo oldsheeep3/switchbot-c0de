@@ -41,16 +41,27 @@ async function checkIsLocked() {
 }
 
 const setLock = async (lock) => {
-  const switchbot = new SwitchBotBLE();
-  const device = await switchbot.discover({ id: DEVICEID.replace(/[-:]/g, ''), duration: 1000 })
+  const switchbot = new SwitchBotBLE({ 'noble': noble});
+  console.log('start device discovery');
+  try {
+    await switchbot.startScan();
+    const device = await switchbot.discover({ id: DEVICEID.replace(/[-:]/g, ''), duration: 10000 })
+    console.log('find device',device)
+    await switchbot.stopScan()
+    console.log('divice discovery complete.');
+    console.log(device.length)
+    if (device.length <= 0) {
+      throw new Error('No device detected.');
+    }
 
-  if (device.length <= 0) {
-    throw new Error('No device detected.');
+    const lockDevice = device[0]
+    lockDevice.setKey(KEY,ENC);
+    console.log('change lock',lockDevice);
+    return lock ? await lockDevice.lock() : await lockDevice.unlock()
+  } catch(error) {
+    console.error(error);
+    throw error;
   }
-
-  const lockDevice = device[0]
-  lockDevice.setKey(KEY,ENC);
-  return lock ? lockDevice.lock() : lockDevice.unlock()
 }
 
 // API本体
